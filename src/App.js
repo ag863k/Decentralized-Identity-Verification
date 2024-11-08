@@ -38,7 +38,7 @@ const App = () => {
 
     if (networkData) {
       const abi = IdentityVerification.abi;
-      const contractAddress = 0xd9145CCE52D386f254917e481eB44e9943F39138; // Replace with the actual contract address from Remix
+      const contractAddress = "0xd9145CCE52D386f254917e481eB44e9943F39138"; // Replace with the actual contract address from Remix
       const contractInstance = new web3.eth.Contract(abi, contractAddress);
       setContract(contractInstance);
     } else {
@@ -68,6 +68,18 @@ const App = () => {
 
   return (
     <div className="App">
+      {/* GitHub Link on the Top-Left */}
+      <header className="header">
+        <a
+          href="https://github.com/abhigarg48/Decentralized-Identity-Verification"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="github-link"
+        >
+          <i className="fab fa-github"></i> Learn more about this project at GitHub
+        </a>
+      </header>
+
       <div className="container">
         <h2>Decentralized Identity Verification</h2>
         <p>Your Account: {account}</p>
