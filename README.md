@@ -1,7 +1,6 @@
 # Decentralized Identity Verification
 
-A decentralized identity verification system where users control their identity and personal information on the blockchain. This project aims to provide a secure and transparent way of verifying identities without relying on centralized authorities.
-
+A decentralized identity verification system where users control their identity and personal information on the blockchain.
 ![Project Screenshot](./screenshot.jpg) <!-- Replace with an actual screenshot of the project interface -->
 
 ## Features
