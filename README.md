@@ -8,9 +8,6 @@ A decentralized identity verification system where users control their identity 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Installation](#installation)
-- [Usage](#usage)
-- [Deployment](#deployment)
-- [License](#license)
 
 ## Features
 - **Self-sovereign identity**: Users have control over their own identities.
