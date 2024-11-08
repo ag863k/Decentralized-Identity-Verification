@@ -4,11 +4,6 @@ A decentralized identity verification system where users control their identity 
 
 ![Project Screenshot](./screenshot.jpg) <!-- Replace with an actual screenshot of the project interface -->
 
-## Table of Contents
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Installation](#installation)
-
 ## Features
 - **Self-sovereign identity**: Users have control over their own identities.
 - **Blockchain security**: Data is stored securely and immutably on the blockchain.
@@ -20,10 +15,6 @@ A decentralized identity verification system where users control their identity 
 - **Blockchain**: Ethereum, Solidity
 - **Storage**: IPFS
 - **Wallet Integration**: MetaMask
-
-## Installation
-
-To run this project locally, follow these steps:
 
 ### Prerequisites
 Make sure you have the following installed:
