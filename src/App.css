@@ -34,3 +34,28 @@ button {
 button:hover {
   background-color: #8fd3f4;
 }
+
+/* App.css */
+.header {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+}
+
+.github-link {
+  color: #0366d6;
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.github-link i {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.github-link:hover {
+  color: #004a99;
+}
+
