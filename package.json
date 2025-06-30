@@ -1,27 +1,33 @@
 {
-  "name": "identity-app",
-  "version": "0.1.0",
+  "name": "decentralized-identity-verification",
+  "version": "1.0.0",
   "private": true,
+  "description": "Decentralized identity verification platform using blockchain technology",
+  "keywords": [
+    "blockchain",
+    "identity",
+    "verification",
+    "web3",
+    "ethereum",
+    "ipfs"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4",
     "web3": "^4.15.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {
@@ -37,6 +43,12 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "gh-pages": "^6.2.0"
+  },
+  "homepage": ".",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   }
 }
