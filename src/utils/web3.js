@@ -21,6 +21,8 @@ export const NETWORKS = {
   }
 };
 
+const networkInfoCache = {};
+
 export const isMetaMaskInstalled = () => {
   return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
 };
@@ -31,11 +33,14 @@ export const formatAddress = (address, startLength = 6, endLength = 4) => {
 };
 
 export const getNetworkInfo = (networkId) => {
-  return NETWORKS[networkId] || {
+  if (networkInfoCache[networkId]) return networkInfoCache[networkId];
+  const info = NETWORKS[networkId] || {
     name: `Unknown Network (${networkId})`,
     symbol: "ETH",
     explorerUrl: ""
   };
+  networkInfoCache[networkId] = info;
+  return info;
 };
 
 export const estimateGasWithBuffer = async (contractMethod, options, buffer = 0.2) => {
@@ -44,8 +49,32 @@ export const estimateGasWithBuffer = async (contractMethod, options, buffer = 0.
     return Math.floor(gasEstimate * (1 + buffer));
   } catch (error) {
     console.warn('Gas estimation failed, using default gas limit');
+    // Try to get block gas limit for a better fallback
+    if (options && options.from && window?.ethereum && window.ethereum.request) {
+      try {
+        const block = await window.ethereum.request({ method: 'eth_getBlockByNumber', params: ['latest', false] });
+        if (block && block.gasLimit) {
+          return Math.floor(parseInt(block.gasLimit) * 0.8);
+        }
+      } catch (e) {
+        // fallback to static
+      }
+    }
     return 200000;
   }
+};
+
+// Batch network requests for speed
+export const batchNetworkRequests = async (web3, requests) => {
+  if (!web3 || !web3.eth || !Array.isArray(requests)) return [];
+  const batch = new web3.BatchRequest();
+  const promises = requests.map((req) => {
+    return new Promise((resolve, reject) => {
+      batch.add(req.request({ callback: (err, data) => err ? reject(err) : resolve(data) }));
+    });
+  });
+  batch.execute();
+  return Promise.all(promises);
 };
 
 export const handleWeb3Error = (error) => {

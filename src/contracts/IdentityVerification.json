@@ -93,9 +93,5 @@
       "type": "function"
     }
   ],
-  "networks": {},
-  "compiler": {
-    "name": "solc",
-    "version": "0.8.0"
-  }
+  "networks": {}
 }

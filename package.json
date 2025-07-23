@@ -12,7 +12,20 @@
     "ipfs"
   ],
   "author": "Your Name",
+  "contributors": [
+    {
+      "name": "Your Name",
+      "email": "your@email.com"
+    }
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/Decentralized-Identity-Verification.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/Decentralized-Identity-Verification/issues"
+  },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -23,7 +36,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "lint": "eslint ./src --ext .js,.jsx",
+    "format": "prettier --write \"src/**/*.{js,jsx,json,css,md}\"",
+    "postinstall": "echo 'Dependencies installed.'"
   },
   "eslintConfig": {
     "extends": [
@@ -46,7 +62,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "gh-pages": "^6.2.0"
   },
-  "homepage": ".",
+  "homepage": "https://your-username.github.io/Decentralized-Identity-Verification",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"

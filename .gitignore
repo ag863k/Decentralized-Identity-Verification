@@ -5,30 +5,82 @@
 
 # Testing
 /coverage
+/coverage-final.json
 
 # Production
 /build
+/dist
 
 # Environment variables
 .env*
 !.env.example
 
-# IDE
+# IDE & Editor
 .vscode/
 .idea/
 *.swp
 *.swo
+*.bak
+*.tmp
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
 
 # Security
 private-keys.txt
 mnemonic.txt
 secrets.json
+
+# Cache
+.cache/
+.next/
+out/
+*.log
+
+# Misc
+*.lock
+*.tgz
+*.zip
+*.tar
+*.gz
+
+# Browsers
+.sass-cache/
+*.sass-cache
+*.eslintcache
+
+# Build tools
+*.tsbuildinfo
+
+# Others
+*.env.local
+*.env.production
+*.env.development
+*.env.test
+
+# Yarn
+.yarn/
+.yarnrc.yml
+
+# npm
+package-lock.json
+
+# pnpm
+pnpm-lock.yaml
+
+# Mac
+__MACOSX/
+
+# Windows
+$RECYCLE.BIN/

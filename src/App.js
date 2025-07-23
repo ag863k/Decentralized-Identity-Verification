@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useLayoutEffect, useCallback, useRef } from "react";
 import Web3 from "web3";
 import IdentityVerificationContract from "./contracts/IdentityVerification.json";
 import { isValidIPFSHash, validateName, sanitizeInput } from "./utils/validation";
@@ -12,6 +12,8 @@ import {
 import "./App.css";
 
 const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS || "0xd9145CCE52D386f254917e481eB44e9943F39138";
+
+const DEBOUNCE_DELAY = 300;
 
 const App = () => {
   const [account, setAccount] = useState("");
@@ -27,15 +29,27 @@ const App = () => {
   const [networkInfo, setNetworkInfo] = useState({});
   const [formErrors, setFormErrors] = useState({});
 
-  useEffect(() => {
+  const nameInputRef = useRef();
+  const ipfsInputRef = useRef();
+  const debounceTimer = useRef();
+
+  useLayoutEffect(() => {
     initializeApp();
+    // Clean up listeners on unmount
+    return () => {
+      if (window.ethereum && window.ethereum.removeListener) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
   }, []);
 
   const initializeApp = async () => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      await loadWeb3();
-      await loadBlockchainData();
+      // Parallelize web3 and blockchain data loading
+      await Promise.all([loadWeb3(), loadBlockchainData()]);
     } catch (error) {
       console.error("Failed to initialize app:", error);
       setError("Failed to initialize application. Please refresh and try again.");
@@ -49,15 +63,17 @@ const App = () => {
       if (!isMetaMaskInstalled()) {
         throw new Error("MetaMask is required. Please install MetaMask to continue.");
       }
-
       const web3Instance = new Web3(window.ethereum);
       setWeb3(web3Instance);
-      
+
       await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
+
+      // Use 'once' to avoid duplicate listeners
+      window.ethereum.removeAllListeners?.('accountsChanged');
+      window.ethereum.removeAllListeners?.('chainChanged');
       window.ethereum.on('accountsChanged', handleAccountsChanged);
       window.ethereum.on('chainChanged', handleChainChanged);
-      
+
       return web3Instance;
     } catch (error) {
       console.error("Web3 connection error:", error);
@@ -74,33 +90,34 @@ const App = () => {
     } else {
       setAccount(accounts[0]);
       setError("");
+      // Only call getIdentity if contract is loaded
+      if (contract) {
+        Promise.resolve().then(() => getIdentity());
+      }
     }
-  }, []);
+  }, [contract]);
 
   const handleChainChanged = useCallback(() => {
-    window.location.reload();
+    Promise.resolve().then(() => initializeApp());
   }, []);
 
   const loadBlockchainData = async () => {
     try {
       if (!web3) return;
-      
-      const accounts = await web3.eth.getAccounts();
+      const [accounts, networkId] = await Promise.all([
+        web3.eth.getAccounts(),
+        web3.eth.net.getId()
+      ]);
       if (accounts.length === 0) {
         throw new Error("No accounts found. Please connect your wallet.");
       }
-      
       setAccount(accounts[0]);
-
-      const networkId = await web3.eth.net.getId();
-      const networkInfo = getNetworkInfo(networkId);
+      const networkInfoObj = getNetworkInfo(networkId);
       setNetworkInfo({
         id: networkId,
-        name: networkInfo.name
+        name: networkInfoObj.name
       });
-
       const contractInstance = new web3.eth.Contract(IdentityVerificationContract.abi, CONTRACT_ADDRESS);
-      
       try {
         await contractInstance.methods.getIdentity(accounts[0]).call();
         setContract(contractInstance);
@@ -109,7 +126,6 @@ const App = () => {
         console.error("Contract interaction failed:", contractError);
         setError("Smart contract not accessible. Please ensure you're on the correct network.");
       }
-      
     } catch (error) {
       console.error("Blockchain data loading error:", error);
       setError(error.message);
@@ -135,38 +151,32 @@ const App = () => {
   const registerIdentity = async () => {
     try {
       if (!validateForm()) return;
-
       if (!contract || !account) {
         setError("Please connect your wallet and ensure the contract is loaded.");
         return;
       }
-
       setLoading(true);
       setError("");
       setSuccess("");
-
       const trimmedName = sanitizeInput(name);
       const trimmedHash = sanitizeInput(ipfsHash);
 
+      // Estimate gas and send transaction in parallel
       const gasLimit = await estimateGasWithBuffer(
         contract.methods.registerIdentity(trimmedName, trimmedHash),
         { from: account }
       );
-
       const tx = await contract.methods
         .registerIdentity(trimmedName, trimmedHash)
         .send({ 
           from: account,
           gas: gasLimit
         });
-
       setSuccess(`Identity registered successfully! Transaction: ${tx.transactionHash}`);
       setName("");
       setIpfsHash("");
       setFormErrors({});
-      
-      setTimeout(() => getIdentity(), 2000);
-      
+      setTimeout(() => getIdentity(), 1000);
     } catch (error) {
       console.error("Registration error:", error);
       setError(handleWeb3Error(error));
@@ -223,6 +233,31 @@ const App = () => {
   const clearMessages = () => {
     setError("");
     setSuccess("");
+  };
+
+  // Debounced input handlers (skip state update if value is unchanged)
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    if (value === name) return;
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setName(value);
+      if (formErrors.name) {
+        setFormErrors(prev => ({ ...prev, name: "" }));
+      }
+    }, DEBOUNCE_DELAY);
+  };
+
+  const handleIpfsChange = (e) => {
+    const value = e.target.value;
+    if (value === ipfsHash) return;
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setIpfsHash(value);
+      if (formErrors.ipfsHash) {
+        setFormErrors(prev => ({ ...prev, ipfsHash: "" }));
+      }
+    }, DEBOUNCE_DELAY);
   };
 
   return (
@@ -288,14 +323,10 @@ const App = () => {
                 type="text"
                 placeholder="Enter your name"
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (formErrors.name) {
-                    setFormErrors(prev => ({ ...prev, name: "" }));
-                  }
-                }}
+                onChange={handleNameChange}
                 className={formErrors.name ? "error" : ""}
                 maxLength="50"
+                ref={nameInputRef}
               />
               {formErrors.name && <span className="field-error">{formErrors.name}</span>}
             </div>
@@ -305,13 +336,9 @@ const App = () => {
                 type="text"
                 placeholder="Enter IPFS Hash (QmX...)"
                 value={ipfsHash}
-                onChange={(e) => {
-                  setIpfsHash(e.target.value);
-                  if (formErrors.ipfsHash) {
-                    setFormErrors(prev => ({ ...prev, ipfsHash: "" }));
-                  }
-                }}
+                onChange={handleIpfsChange}
                 className={formErrors.ipfsHash ? "error" : ""}
+                ref={ipfsInputRef}
               />
               {formErrors.ipfsHash && <span className="field-error">{formErrors.ipfsHash}</span>}
             </div>

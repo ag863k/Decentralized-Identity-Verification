@@ -1,11 +1,9 @@
-// components/ErrorBoundary.js - Error boundary for production error handling
-
 import React from 'react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null, errorInfo: null, isReloading: false };
   }
 
   static getDerivedStateFromError(error) {
@@ -26,6 +24,16 @@ class ErrorBoundary extends React.Component {
     // Example: Sentry.captureException(error, { extra: errorInfo });
   }
 
+  handleReload = () => {
+    if (!this.state.isReloading) {
+      this.setState({ isReloading: true }, () => window.location.reload());
+    }
+  };
+
+  handleTryAgain = () => {
+    this.setState({ hasError: false, error: null, errorInfo: null, isReloading: false });
+  };
+
   render() {
     if (this.state.hasError) {
       // Fallback UI
@@ -33,17 +41,18 @@ class ErrorBoundary extends React.Component {
         <div className="error-boundary">
           <div className="error-container">
             <h2>🚨 Something went wrong</h2>
-            <p>We're sorry for the inconvenience. The application encountered an unexpected error.</p>
+            <p>The application encountered an unexpected error.</p>
             
             <div className="error-actions">
               <button 
-                onClick={() => window.location.reload()} 
+                onClick={this.handleReload}
                 className="primary-button"
+                disabled={this.state.isReloading}
               >
                 Reload Page
               </button>
               <button 
-                onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })} 
+                onClick={this.handleTryAgain}
                 className="secondary-button"
               >
                 Try Again
@@ -51,10 +60,10 @@ class ErrorBoundary extends React.Component {
             </div>
 
             {process.env.NODE_ENV === 'development' && (
-              <details className="error-details">
-                <summary>Error Details (Development Only)</summary>
+              <details className="error-details" open>
+                <summary>Error Details</summary>
                 <pre>{this.state.error && this.state.error.toString()}</pre>
-                <pre>{this.state.errorInfo.componentStack}</pre>
+                <pre>{this.state.errorInfo?.componentStack}</pre>
               </details>
             )}
           </div>
